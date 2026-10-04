@@ -6,16 +6,76 @@
 <title>Junhao Cai, 蔡俊豪, 채준호 | Homepage</title>
 <link rel="canonical" href="https://chae-junho.github.io/">
 <link rel="icon" href="https://chae-junho.github.io/images/favicon-32x32.png">
+<link rel="preconnect" href="https://chae-junho.github.io" crossorigin>
+<link rel="preload" href="https://chae-junho.github.io/" as="fetch" crossorigin>
 <style>
-html, body { margin: 0; height: 100%; overflow: hidden; background: #fff; }
+html, body { margin: 0; height: 100%; background: #fff; }
 iframe { position: fixed; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
 </style>
 </head>
 <body>
-<iframe id="site" src="https://chae-junho.github.io/" title="Junhao Cai"></iframe>
 <noscript><p><a href="https://chae-junho.github.io/">Open chae-junho.github.io</a></p></noscript>
 <script>
-if (location.hash) { document.getElementById('site').src = 'https://chae-junho.github.io/' + location.hash; }
+(function () {
+  var main = 'https://chae-junho.github.io/';
+  var settled = false;
+  var timer = setTimeout(fallback, 8000);
+
+  function fallback() {
+    if (settled) {
+      return;
+    }
+    settled = true;
+    clearTimeout(timer);
+    if (window.matchMedia('(pointer: coarse)').matches) {
+      location.replace(main + location.search + location.hash);
+      return;
+    }
+    var frame = document.createElement('iframe');
+    frame.src = main + location.hash;
+    frame.title = 'Junhao Cai';
+    document.documentElement.style.overflow = 'hidden';
+    document.body.appendChild(frame);
+  }
+
+  function absolute(doc) {
+    var manifest = doc.querySelector('link[rel="manifest"]');
+    if (manifest) {
+      manifest.parentNode.removeChild(manifest);
+    }
+    Array.prototype.forEach.call(doc.querySelectorAll('[src], [href], [poster]'), function (element) {
+      ['src', 'href', 'poster'].forEach(function (name) {
+        var value = element.getAttribute(name);
+        if (value && !/^(?:[a-z][a-z0-9+.-]*:|\/\/|#)/i.test(value)) {
+          element.setAttribute(name, new URL(value, main).href);
+        }
+      });
+    });
+  }
+
+  function show(html) {
+    if (settled) {
+      return;
+    }
+    var page = new DOMParser().parseFromString(html, 'text/html');
+    absolute(page);
+    settled = true;
+    clearTimeout(timer);
+    document.open();
+    document.write('<!doctype html>' + page.documentElement.outerHTML);
+    document.close();
+  }
+
+  fetch(main, { mode: 'cors' })
+    .then(function (response) {
+      if (!response.ok) {
+        throw new Error(response.status);
+      }
+      return response.text();
+    })
+    .then(show)
+    .catch(fallback);
+}());
 </script>
 </body>
 </html>
